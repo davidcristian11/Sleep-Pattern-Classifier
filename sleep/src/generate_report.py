@@ -56,6 +56,19 @@ class SleepAnalysisReport:
             return importance_df.head(n)
         return pd.DataFrame()
 
+    @staticmethod
+    def format_accuracy(value):
+        return "n/a (retrain the model)" if value is None else f"{value:.1%}"
+
+    def load_test_accuracy(self):
+        """Test-set accuracy saved by optimized_sleep_model.py (None if not trained yet)."""
+        import json
+        metrics_path = Path(__file__).parent.parent / "models" / "metrics.json"
+        if metrics_path.exists():
+            with open(metrics_path, encoding="utf-8") as f:
+                return json.load(f).get("test_accuracy")
+        return None
+
     def generate_markdown_report(self):
         """Generate report in Markdown format"""
         # Load data and model
@@ -63,7 +76,7 @@ class SleepAnalysisReport:
         quality_col = self.get_sleep_quality_column(df)
 
         # Get statistics from the model
-        model_accuracy = 0.891  # From the optimized model
+        model_accuracy = self.load_test_accuracy()
         total_participants = len(df)
         total_features = len(feature_names)
 
@@ -96,7 +109,7 @@ This report presents the analysis of **{total_participants} military personnel**
 
 ### Key Findings:
 
-1. **Our optimized model can predict sleep quality** with an accuracy of {model_accuracy:.1%}
+1. **Our optimized model can predict sleep quality** with an accuracy of {self.format_accuracy(model_accuracy)}
 2. **{poor_sleep_pct:.1f}% of participants report problematic sleep** ("Pretty Bad" or "Very Bad")
 3. **Environmental factors have a significant negative impact** on sleep quality
 4. **Key personal factors like energy levels and stress** also strongly influence sleep quality
@@ -149,7 +162,7 @@ Environmental factors such as temperature extremes, noise, and air quality have 
 ![Confusion Matrix](optimized_confusion_matrix.png)
 
 ### Model Results:
-- **Overall Accuracy**: {model_accuracy:.1%}
+- **Overall Accuracy**: {self.format_accuracy(model_accuracy)}
 - **Best at Predicting**: "Quite Good" sleep quality (highest recall)
 - **Challenges**: Extreme categories ("Very Bad"/"Very Good")
 
@@ -295,7 +308,7 @@ Analysis of factors influencing sleep quality in military personnel using AI and
 ## Key Results
 
 ### 1. Optimized AI Model
-- Model with 89.1% accuracy
+- Random Forest model evaluated on a held-out test set (see models/metrics.json)
 - Can predict sleep quality based on multiple personal and environmental factors
 - Useful for personalized monitoring and intervention
 

@@ -1,62 +1,59 @@
-Sleep Quality Dashboard
-A machine learning-based dashboard to analyze, predict, and visualize sleep quality for military personnel based on survey data.
+# Sleep Quality Classifier
 
-📂 Project Structure
-sleep_dashboard/
-├── data/                     # Dataset CSV files (input and processed)
-├── models/                   # Saved optimized models (pkl)
-├── results/                  # Generated plots (feature importance, confusion matrix)
-├── reports/                  # Markdown and HTML analysis reports
-├── dashboard_config.py       # Configuration for dashboard (colors, mappings, etc.)
-├── dashboard_utils.py        # Utility functions for data loading and visualization
-├── data_preparation.py       # Data preprocessing and feature engineering
-├── generate_report.py        # Auto-generate analysis reports in Markdown and HTML
-├── optimized_sleep_model.py  # Model training, tuning, evaluation pipeline
-├── sleep_dashboard.py        # Streamlit app for the dashboard
-├── requirements.txt          # Python dependencies
-└── README.md                 # This file
+A machine learning model and Streamlit dashboard that predict and explain sleep quality from survey data collected from military personnel.
 
-🚀 How to Run
-1️⃣ Install Dependencies
+## What it does
+
+- Turns survey answers (bedtimes, frequencies, categorical answers) into numeric features.
+- Trains a Random Forest classifier for four sleep quality levels, from *Very Bad* to *Very Good*.
+- Handles class imbalance with SMOTE and tunes hyperparameters with randomized search and stratified 5-fold cross-validation.
+- Shows the most important factors and lets you try predictions in an interactive dashboard.
+- Generates an analysis report in Markdown and HTML.
+
+## Evaluation
+
+The training pipeline is set up so that the reported scores reflect real, unseen answers:
+
+1. A stratified test set (20%) is split off **before** any fitted preprocessing.
+2. Missing-value means and scaling are fitted on the training set only.
+3. SMOTE runs only on training data, inside each cross-validation fold, so no synthetic samples reach validation or test data.
+4. The model is compared against a majority-class baseline, on both accuracy and macro F1.
+
+Results are saved to `models/metrics.json`, and the dashboard and report read them from there.
+
+> **Note:** an earlier version applied SMOTE to the whole dataset before splitting, which let synthetic copies of training samples into the test set and inflated the reported accuracy (89%). The pipeline was fixed as described above. Retraining needs the original survey dataset, which is not included in this repository, so the saved model and plots are still from the earlier version.
+
+## Running it
+
+```bash
+cd sleep
 pip install -r requirements.txt
-2️⃣ Data Preparation
-Ensure your dataset is placed inside the data/ directory. Expected input:
 
-data/P2.4_Military_Responses.csv
-3️⃣ Train the Model
-python optimized_sleep_model.py
-Generates:
+# place the survey data at sleep/data/P2.4_Military_Responses.csv
+cd src
+python optimized_sleep_model.py   # train, evaluate, save model, metrics and plots
+python generate_report.py         # optional: Markdown/HTML report
+streamlit run sleep_dashboard.py  # dashboard on http://localhost:8501
+```
 
-Trained model models/optimized_sleep_model.pkl
+## Project structure
 
-Evaluation plots results/
+```text
+sleep/
+  src/
+    optimized_sleep_model.py   training, tuning and evaluation
+    sleep_dashboard.py         Streamlit dashboard
+    dashboard_utils.py         data loading and charts
+    data_preparation.py        data preprocessing helpers
+    generate_report.py         report generation
+  models/                      saved model and metrics
+  results/                     confusion matrix and feature importance plots
+```
 
-4️⃣ Generate Analysis Report (Optional)
-python generate_report.py
-Output:
-Markdown report reports/
-HTML version for easy sharing
+## Tech stack
 
-5️⃣ Launch the Dashboard
-streamlit run sleep_dashboard.py
-Access via:
-http://localhost:8501
-🛠️ Technologies Used
-Python 3.10+
-Streamlit
-Scikit-learn
-Pandas / NumPy
-Seaborn / Matplotlib / Plotly
-Imbalanced-learn (SMOTE)
+Python · pandas · scikit-learn · imbalanced-learn · Streamlit · Plotly · Matplotlib / Seaborn
 
-📊 Key Features
-Analyze sleep quality survey data
-Predict sleep quality using Random Forest (optimized)
-Visualize key contributing factors
-Interactive user interface (Streamlit)
-Auto-generated reports in Markdown/HTML
-Supports both simple and advanced prediction modes
+## Disclaimer
 
-⚠️ Disclaimer
-This project is for educational and research purposes only. It is not clinically validated for medical decision-making.
-
+For educational and research purposes only. The model is not clinically validated and should not be used for medical decisions.

@@ -56,9 +56,14 @@ def show_summary_tab(df, model, metadata):
                       help="Average sleep quality score (1-4)")
 
         with col3:
-            model_accuracy = 0.891  # Optimized model accuracy
-            st.metric("Model Accuracy", f"{model_accuracy:.1%}",
-                      help="Accuracy of the optimized model")
+            metrics = metadata.get('metrics', {})
+            model_accuracy = metrics.get('test_accuracy')
+            if model_accuracy is not None:
+                st.metric("Model Accuracy", f"{model_accuracy:.1%}",
+                          help="Accuracy on a held-out test set of real survey responses")
+            else:
+                st.metric("Model Accuracy", "n/a",
+                          help="Retrain the model to compute test-set metrics")
 
         with col4:
             total_features = len(metadata.get('feature_names', []))
